@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+    <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+    <link rel="stylesheet" href="style.css">
+    <script src="socket.io.js"></script>
+
+    <style>
+
+
+        h1 {
+            margin:20px
+
+        }
+
+    </style>
+
+
+</head>
+
+
+<body>
+
+<h1>Le 15 Attivita' di business con il maggior numero di recensioni</h1>
+
+<div id="everything">
+
+    <div id="chart"></div>
+
+</div>
+
+
+<script>
+
+
+    //window.open('/WebstormWorkspace/googlemaps/googlecluster2.html', 'googlemaps', '');
+
+
+    newData=[];
+
+    var settings;
+
+    var cont=0;
+
+    var y;
+
+    var lunghezzaPrecedente;
+
+    var redrawChart;
+
+    var newRow;
+
+
+    //Set size of svg element and chart
+    var margin = {top: 0, right: 0, bottom: 0, left: 0},
+        width = 600 - margin.left - margin.right,
+        height = 650 - margin.top - margin.bottom,
+        categoryIndent = 4*15 + 5,
+        defaultBarWidth = 2000;
+
+    console.log("avvio");
+
+    var socket = io('http://localhost:3001');
+
+    socket.on('connect', ()=>{
+        console.log("connected");
+    })
+
+
+   var svg;
+   var chartRow;
+
+    socket.on('update', (data) =>{
+
+
+        function setup(targetID){
+
+        //Set up scales
+        var x = d3.scale.linear()
+            .domain([0,defaultBarWidth])
+            .range([0,width]);
+
+
+        //Create SVG element
+        d3.select(targetID).selectAll("svg").remove()
+        svg = d3.select(targetID).append("svg")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+            .append("g")
+            .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+
+        //Package and export settings
+        return {
+            svg: svg, x: x
+        };
+    }
+
+    redrawChart= function(targetID, newdata,lunghezzaPrecedente) {
+
+
+        //Import settings
+        var svg=settings.svg, x=settings.x;
+
+        var indici = [{i: 5, j:117},
+            {i:4, j:87},
+            {i:4, j:130},
+            {i:4, j:173},
+            {i:4, j:216},
+            {i:4, j:259},
+            {i:4, j:302},
+            {i:4, j:345},
+            {i:4, j:388},
+            {i:4, j:431},
+
+            {i:4, j:474},
+            {i:4, j:517},
+            {i:4, j:560},
+            {i:4, j:603},
+            {i:4, j:646}
+
+
+        ];
+
+
+        if(lunghezzaPrecedente!=newdata.length){
+
+            //Set up scales
+            y = d3.scale.ordinal()
+                .rangeRoundBands([indici[newdata.length-1]["i"], indici[newdata.length-1]["j"]], 0.1, 0);}
+
+        //Reset domains
+        y.domain(newdata.sort(function(a,b){
+            return b.value - a.value;
+        })
+            .map(function(d) { return d.key; }));
+        var barmax = d3.max(newdata, function(e) {
+            return e.value;
+        });
+        x.domain([0,barmax]);
+
+        /////////
+        //ENTER//
+        /////////
+
+        //Bind new data to chart rows
+
+        //Create chart row and move to below the bottom of the chart
+        chartRow = svg.selectAll("g.chartRow")
+            .data(newdata, function(d){ return d.key.split(",")[0]})
+            .attr("id", function(d)
+            { return d.key.split(",")[0]; });
+
+        newRow = chartRow
+            .enter()
+            .append("g")
+            .attr("class", "chartRow")
+            .attr("transform", "translate(0," + height + margin.top + margin.bottom + ")")
+            ;
+
+        //Add rectangles
+        newRow.insert("rect")
+            .attr("class","bar")
+            .attr("x", 0)
+            .attr("opacity",0)
+            .style('fill', function(d) {return d.color;})
+            .attr("height", 30)  //altenzza barre
+            .attr("width", function(d) { return x(d.value);})
+
+        //Add value labels
+        newRow.append("text")
+            .attr("class","label")
+            .attr("y", 30/2)   //centra i valori
+            .attr("x",0)
+            .attr("opacity",0)
+            .attr("dy",".35em")
+            .attr("dx","0.5em")
+            .text(function(d){return d.value;});
+
+        //Add Headlines
+        newRow.append("text")
+            .attr("class","category")
+            .attr("text-overflow","ellipsis")
+            .attr("y", 30/2)  //centra le key
+            .attr("x",categoryIndent)
+            .attr("opacity",0)
+            .attr("dy",".35em")
+            .attr("dx","0.5em")
+            .text(function(d){return d.key});
+
+
+        //////////
+        //UPDATE//
+        //////////
+
+        //Update bar widths
+        chartRow.select(".bar").transition()
+            .duration(300)
+            .style('fill',function(d){return d.color;})
+            .attr("width", function(d) { return x(d.value);})
+            .attr("opacity",1);
+
+        //Update data labels
+        chartRow.select(".label").transition()
+            .duration(300)
+            .attr("opacity",1)
+            .tween("text", function(d) {
+                var i = d3.interpolate(+this.textContent.replace(/\,/g,''), +d.value);
+                return function(t) {
+                    this.textContent = Math.round(i(t));
+                };
+            });
+
+        //update average
+        chartRow.select(".category").transition().duration(300)
+            .attr("class","category")
+            .attr("text-overflow","ellipsis")
+            .attr("y", 36/2)  //centra le key
+            .attr("x",categoryIndent)
+            .attr("opacity",1)
+            .attr("dy",".35em")
+            .attr("dx","0.5em")
+            .text(function(d){
+                return d.key});
+
+
+        // //Fade in categories
+        // chartRow.select(".category").transition()
+        //     .duration(300)
+        //     .attr("opacity",1);
+
+
+        ////////
+        //EXIT//
+        ////////
+
+        //Fade out and remove exit elements
+        chartRow.exit().transition()
+            .style("opacity","0")
+            .attr("transform", "translate(0," + (height + margin.top + margin.bottom) + ")")
+            .remove();
+
+
+        ////////////////
+        //REORDER ROWS//
+        ////////////////
+
+        var delay = function(d, i) { return 200 + i * 30; };
+
+        chartRow.transition()
+            .delay(delay)
+            .duration(100)
+            .attr("transform", function(d){return "translate(0," + y(d.key) + ")";});
+
+
+
+    chartRow.on("click", function(d){
+
+            console.log("hocliccato");
+            let nome= d.key.split(",")[0];
+            console.log(nome);
+
+            socket.emit('update2',nome)
+
+
+            // window.open('/WebstormWorkspace/googlemaps/googlecluster2.html', 'googlemaps', '');
+            // window.open('javascript:void window.focus()', 'googlemaps', '');
+
+    });
+
+
+
+
+    };
+
+
+
+    function pullData(settings,callback){
+
+            lunghezzaPrecedente=newData.length;
+
+            //key: nome,media stelle   value: n_recensioni
+            var messaggio= {key:data.split(",")[2].toString() +", " + Number(data.split(",")[4]).toFixed(1).toString()
+                    + " su 5 stelle", value:parseInt(data.split(",")[3]),
+            color:'#ECECEC'}
+
+            console.log("messaggio ->" + messaggio.key.toString() + "," + messaggio.value.toString())
+
+
+            if(isNotIn(newData,messaggio)){
+
+                newData.push(messaggio)
+
+            }
+
+            update(newData,messaggio)
+
+            newData = formatData(newData)
+
+
+            callback(settings,newData,lunghezzaPrecedente)
+
+    }
+
+
+    function isNotIn(array,el) {
+        elementoTrovato= true
+
+        array.forEach(function (data) {
+
+            //se c'è ritorna false
+            if ((el.key.split(",")[0].toString() == data.key.split(",")[0].toString())) {
+                elementoTrovato = false
+
+            }}
+        )
+
+        return elementoTrovato
+    }
+
+
+    function update(array,el){
+
+        array.forEach(function (data,i) {
+
+            //se è stato già aggiunto
+            if ((el.key.split(",")[0].toString() == data.key.split(",")[0].toString())) {
+
+                if(el.value>data.value){
+
+                    array.splice(i,1)
+                    array.push(el)
+
+                }
+
+            }
+        })
+    }
+
+
+
+        //Sort data in descending order and take the top 10 values
+    function formatData(data){
+        return data.sort(function (a, b) {
+            return b.value - a.value;
+        })
+            .slice(0, 15);
+    }
+
+    //I like to call it what it does
+    function redraw(settings){
+        pullData(settings,redrawChart)
+    }
+
+
+    //setup (includes first draw)
+
+    if(cont==0){
+
+        settings = setup('#chart');
+        cont=1
+    }
+
+    redraw(settings)
+
+
+    })
+
+    socket.on('update5', (data) =>{
+
+        console.log("cliccato su ->" + data);
+
+        let indice;
+
+        newData.forEach(function(d,i){
+            if(data==d.key.split(",")[0]){
+                indice=i
+
+            }
+        })
+
+        //console.log(indice)
+
+
+        newData[indice].color='yellow'
+
+        //console.log(newData[0].color)
+
+        chartRow[0][indice].color='yellow'
+
+
+        redrawChart(settings,newData,newData.length)
+
+
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        async function demo() {
+
+            await sleep(4000);
+
+            newData.forEach(function(d,i){
+                if(data==d.key.split(",")[0]){
+                    indice=i
+
+                }
+            })
+
+            newData[indice].color='#ECECEC'
+
+            chartRow[0][indice].color='#ECECEC'
+
+            redrawChart(settings,newData,newData.length)
+
+            }
+
+
+        demo();
+
+
+
+
+
+
+
+    })
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</script>
+</body>
+
+
+</html>

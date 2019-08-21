@@ -1,0 +1,107 @@
+version: '3'
+services:
+
+  ###    ZOOKEEPER    ####
+  zookeeper:
+    image: wurstmeister/zookeeper
+    ports:
+      - "2181:2181"
+    container_name: 
+      zookeeper
+    logging:
+      driver: "none"
+
+  ###    KAFKA    ####
+  kafka:
+    image: wurstmeister/kafka:latest
+    depends_on:
+      - "zookeeper"
+    ports:
+      - "9092:9092"
+    container_name: 
+      kafka
+    environment:
+      KAFKA_ADVERTISED_HOST_NAME: kafka
+      KAFKA_ADVERTISED_PORT: 9092
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_DELETE_TOPIC_ENABLE: "true"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    logging:
+      driver: "none"
+    
+ 
+    ### Kafka PRODUCER  ###
+  producer:
+    build: 
+      context: ./Analytics/Kafka_Producer
+    depends_on:
+      - "kafka"
+      - "zookeeper"
+    volumes:
+      - ./Analytics/Kafka_Producer/input/business_review2.json:/data/business_review2.json
+    container_name: 
+      producer
+    logging:
+      driver: "none"
+    
+ ###  media_stelle ###
+  media_stelle:
+    build: 
+      context: ./Analytics/Stream/media_stelle
+    depends_on:
+      - "kafka"
+      - "zookeeper"
+    container_name: 
+      media_stelle
+    #logging:
+      #driver: "none"
+    
+ 
+  ### google_consumer ###
+  google_consumer:
+    build:
+      context: ./Visualization/kafka_consumers/google_consumer
+    depends_on:
+      - "kafka"
+      - "zookeeper"
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./Visualization/kafka_consumers/google_consumer/socket.io.js:/socket.io.js
+    container_name: 
+      google_consumer
+
+
+ ### googlemaps ###
+  googlemaps:
+    build:
+      context: ./Visualization/googlemaps
+    depends_on:
+      - "google_consumer"
+    container_name:
+      googlemaps
+    ports:
+      - "8081:80"
+    environment:
+      - NGINX_PORT=8081
+ 
+ ### barchart ###
+  barchart:
+    build:
+      context: ./Visualization/barchart
+    depends_on:
+      - "google_consumer"
+    ports:
+      - "8082:80"
+    environment:
+      - NGINX_PORT=8082
+    container_name:
+      barchart
+
+
+
+    
+ 
+
+

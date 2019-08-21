@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+    <meta charset="utf-8">
+    <title>Marker Clustering</title>
+    <style>
+        /* Always set the map height explicitly to define the size of the div
+         * element that contains the map. */
+        #map {
+            height: 100%;
+        }
+        /* Optional: Makes the sample page fill the window. */
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+    </style>
+
+
+    <script src="socket.io.js"></script>
+
+</head>
+
+<body>
+<div id="map"></div>
+<script>
+
+
+    var max_markers=15
+
+    // window.open('/WebstormWorkspace/n_recensioni/index.html', 'barchart', '');
+    // window.open('/WebstormWorkspace/googlemaps/googlecluster2.html', 'googlemaps', '');
+
+
+    console.log("avvio")
+
+    var socket = io('http://localhost:3001');
+
+    socket.on('connect', ()=>{
+        console.log("connected");
+    })
+
+    window.name = "googlemaps";
+
+    var labels = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+
+    var markers =[]
+
+
+    function myfunction(name){
+        console.log("cliccato")
+       socket.emit('update4',name)
+        // window.open('/WebstormWorkspace/n_recensioni/index.html', 'barchart', '');
+        // window.open('javascript:void window.focus()', 'barchart', '');
+
+    }
+
+    var nome_business;
+
+
+    function getRandom(){
+    var min=0;
+    var max=labels.length
+    return Math.floor(Math.random() * (+max - +min)) + +min;
+    }
+
+
+    function initMap() {
+
+        var map = new google.maps.Map(document.getElementById('map'), {
+            zoom: 4.5,
+            center: {lat: 41.159403, lng: -99.625346}
+        });
+
+
+        // Add a marker clusterer to manage the markers.
+        var markerCluster = new MarkerClusterer(map, markers,
+            {imagePath: 'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m'});
+
+
+
+        socket.on('update', (data) =>{
+            //console.log(data);
+
+            var lat= data.split(",")[0]
+            var lng= data.split(",")[1]
+
+            var name= data.split(",")[2]
+
+            var n_recensioni = data.split(",")[3]
+
+            var media_stelle = data.split(",")[4]
+
+            //console.log(lat,lng,name,n_recensioni,media_stelle);
+
+            loc={lat:parseFloat(lat),lng:parseFloat(lng)};
+
+            addMarker(loc,name,n_recensioni,media_stelle,markers,markerCluster);
+
+
+            socket.on('update3', (data) =>{
+
+                trova_marker(markers,data)
+
+
+            })
+
+        })
+
+
+
+        // function myFunction() {
+        //     document.getElementById("content").innerHTML = "Hello World";
+        // }
+
+
+        function trova_marker(markers,nome){
+
+            markers.forEach(function (data,i) {
+
+                if(data["title"]==nome){
+                    new google.maps.event.trigger( markers[i], 'click' );
+
+                    map.setZoom(15);
+                    map.setCenter(markers[i].getPosition());
+
+                }
+
+            })}
+
+
+
+        function addMarker(location,name,n_recensioni,media_stelle,markers,markerCluster) {
+
+
+            //se non c'è, se il n di recensioni è maggiore ad almeno 1 elemento, allora aggiungi ed elimina il minimo
+            if(isNotIn(markers,location,name,n_recensioni,media_stelle)){
+
+                if(markers.length<max_markers){
+                    console.log("aggiunto")
+
+                    let marker = new google.maps.Marker({
+                        position: location,
+                        label: labels[getRandom()],
+                        title: name,
+                        customInfo: n_recensioni +"," + media_stelle + "," + location["lat"] + "," + location["lng"]
+                    });
+
+                    markers.push(marker);
+                    markerCluster.addMarker(marker)
+
+
+                    var content_window = document.createElement('div'), button;
+                    content_window.setAttribute("id","content")
+
+
+                    content_window.innerHTML =
+                        '<div id="siteNotice">'+
+                        '</div>'+
+                        '<h1 id="firstHeading" class="firstHeading">'+ name +'</h1>'+
+                        '<div id="bodyContent">'+
+                        '<p> <font size="5"> recensioni: ' + n_recensioni +'</font></p>'+
+                        '<p> <font size="5">' + Number((parseFloat(media_stelle)).toFixed(1))+' su 5 stelle </font></p>'
+                    '</div>'
+
+
+
+                    button = content_window.appendChild(document.createElement('input'));
+                    button.type = 'button';
+                    button.value = 'vai alla top 15'
+
+                    google.maps.event.addDomListener(button, 'click', function () {
+                        myfunction(name);
+                    })
+
+
+
+                    addInfoWindow(marker, content_window)
+                }
+
+
+                //else if(maggiore_almeno_uno(markers,n_recensioni)){
+
+                else{
+
+                    let marker = new google.maps.Marker({
+                        position: location,
+                        label: labels[getRandom()],
+                        title: name,
+                        customInfo: n_recensioni +"," + media_stelle + "," + location["lat"] + "," + location["lng"]
+                    });
+
+                    markers.push(marker);
+
+                    //console.log("ho aggiunto -> " + name.toString())
+
+
+                    // console.log(markers)
+                    // console.log("stampo array prima")
+                    //
+                    // markers.forEach(function (data) {
+                    //
+                    //     console.log(data["title"],data["customInfo"].split(",")[0])
+                    //     }
+                    // )
+                    //
+                    // console.log("fine stampa")
+
+
+                    formatData(markers)
+
+                    markerCluster.removeMarker(markers[max_markers]) //rimuove il minimo
+
+                    //console.log("rimosso il minimo ->"+ markers[max_markers]["title"].toString())
+
+
+
+                    if(markers[max_markers]!=marker){
+                    markerCluster.addMarker(marker)
+                    }
+
+
+                    markers.splice(max_markers,1)
+
+                    // console.log(markers)
+                    //
+                    // console.log("stampo array dopo")
+                    //
+                    // markers.forEach(function (data) {
+                    //
+                    //         console.log(data["title"])
+                    //     }
+                    // )
+                    //
+                    // console.log("fine stampa")
+
+
+                    var content_window = document.createElement('div'), button;
+                    content_window.setAttribute("id","content")
+
+
+                    content_window.innerHTML =
+                        '<div id="siteNotice">'+
+                        '</div>'+
+                        '<h1 id="firstHeading" class="firstHeading">'+ name +'</h1>'+
+                        '<div id="bodyContent">'+
+                        '<p> <font size="5"> recensioni: ' + n_recensioni +'</font></p>'+
+                        '<p> <font size="5">' + Number((parseFloat(media_stelle)).toFixed(1))+' su 5 stelle </font></p>'
+                    '</div>'
+
+
+
+                    button = content_window.appendChild(document.createElement('input'));
+                    button.type = 'button';
+                    button.value = 'vai alla top 15'
+
+                    google.maps.event.addDomListener(button, 'click', function () {
+                        myfunction(name);
+                    })
+
+
+
+                    addInfoWindow(marker, content_window)}
+
+
+
+            }
+
+
+            update(markers,markerCluster,location,name,n_recensioni,media_stelle)
+
+        }
+
+        function addInfoWindow(marker, content_window) {
+
+            var infoWindow = new google.maps.InfoWindow({
+                content: content_window
+            });
+
+            google.maps.event.addListener(marker, 'click', function () {
+                infoWindow.open(map, marker);
+            });
+        }
+
+
+
+        function isNotIn(array,location,name,n_recensioni,media_stelle) {
+            elementoTrovato= true
+
+            array.forEach(function (data) {
+
+                //se c'è ritorna false
+                if ((location["lat"] == data["customInfo"].split(",")[2]) && (location["lng"] == data["customInfo"].split(",")[3])) {
+                    elementoTrovato = false
+                }}
+            )
+
+            return elementoTrovato
+        }
+
+
+
+        function formatData(data){
+            return data.sort(function (a, b) {
+                return b["customInfo"].split(",")[0] - a["customInfo"].split(",")[0];
+            })
+
+        }
+
+
+        function update(markers,markerCluster,location,name,n_recensioni,media_stelle){
+
+            markers.forEach(function (data,i) {
+
+                //se è stato già aggiunto
+                if ((location["lat"] == data["customInfo"].split(",")[2]) && (location["lng"] == data["customInfo"].split(",")[3])) {
+
+                    //se le recensioni sono aumentate c'è un update
+                    if(n_recensioni>parseFloat(data["customInfo"].split(",")[0])) {
+                        console.log("cambiamento")
+                        markerCluster.removeMarker(data)
+                        markers.splice(i,1)
+
+                        let marker = new google.maps.Marker({
+                            position: location,
+                            label: labels[getRandom()],
+                            title: name,
+                            customInfo: n_recensioni +"," + media_stelle + "," + location["lat"] + "," + location["lng"]
+                        });
+
+                        markers.push(marker);
+
+                        var content_window = document.createElement('div'), button;
+                        content_window.setAttribute("id","content")
+
+
+                        content_window.innerHTML =
+                            '<div id="siteNotice">'+
+                            '</div>'+
+                            '<h1 id="firstHeading" class="firstHeading">'+ name +'</h1>'+
+                            '<div id="bodyContent">'+
+                            '<p> <font size="5"> recensioni: ' + n_recensioni +'</font></p>'+
+                            '<p> <font size="5">' + Number((parseFloat(media_stelle)).toFixed(1))+' su 5 stelle </font></p>'
+                        '</div>'
+
+
+
+                        button = content_window.appendChild(document.createElement('input'));
+                        button.type = 'button';
+                        button.value = 'vai alla top 15'
+
+                        google.maps.event.addDomListener(button, 'click', function () {
+                            myfunction(name);
+                        })
+
+
+                        addInfoWindow(marker,content_window)
+                        markerCluster.addMarker(marker)
+                    }
+
+
+
+
+                }}
+            )
+
+
+        }
+
+
+    }
+
+
+</script>
+<script src="https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/markerclusterer.js">
+</script>
+<script async defer
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBbilBQ88oVxw2fy2SVBthqqQnMrJG9cgY&callback=initMap">
+</script>
+</body>
+</html>
