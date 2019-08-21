@@ -52,53 +52,41 @@ services:
     depends_on:
       - "kafka"
       - "zookeeper"
+    volumes:
+      - ./Analytics/Stream/media_stelle/spark-streaming-kafka-0-8_2.11-2.3.3.jar:/data/spark-streaming-kafka-0-8_2.11-2.3.3.jar
     container_name: 
       media_stelle
     #logging:
       #driver: "none"
     
  
-  ### google_consumer ###
-  google_consumer:
+  ### javascript_consumer ###
+  javascript_consumer:
     build:
-      context: ./Visualization/kafka_consumers/google_consumer
+      context: ./Visualization/javascript_consumer
     depends_on:
       - "kafka"
       - "zookeeper"
     ports:
       - "3001:3001"
     volumes:
-      - ./Visualization/kafka_consumers/google_consumer/socket.io.js:/socket.io.js
+      - ./Visualization/javascript_consumer/socket.io.js:/socket.io.js
     container_name: 
-      google_consumer
+      javascript_consumer
 
 
- ### googlemaps ###
-  googlemaps:
+ ### html_pages ###
+  html_pages:
     build:
-      context: ./Visualization/googlemaps
+      context: ./Visualization/html_pages
     depends_on:
-      - "google_consumer"
+      - "javascript_consumer"
     container_name:
-      googlemaps
+      html_pages
     ports:
       - "8081:80"
     environment:
       - NGINX_PORT=8081
- 
- ### barchart ###
-  barchart:
-    build:
-      context: ./Visualization/barchart
-    depends_on:
-      - "google_consumer"
-    ports:
-      - "8082:80"
-    environment:
-      - NGINX_PORT=8082
-    container_name:
-      barchart
-
 
 
     

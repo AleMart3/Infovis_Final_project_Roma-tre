@@ -28,12 +28,10 @@
 <script>
 
 
+
     var max_markers=15
 
-    // window.open('/WebstormWorkspace/n_recensioni/index.html', 'barchart', '');
-    // window.open('/WebstormWorkspace/googlemaps/googlecluster2.html', 'googlemaps', '');
-
-
+   
     console.log("avvio")
 
     var socket = io('http://localhost:3001');
@@ -52,8 +50,8 @@
     function myfunction(name){
         console.log("cliccato")
        socket.emit('update4',name)
-        // window.open('/WebstormWorkspace/n_recensioni/index.html', 'barchart', '');
-        // window.open('javascript:void window.focus()', 'barchart', '');
+       window.open('javascript:void window.focus()', 'barchart','');
+        
 
     }
 

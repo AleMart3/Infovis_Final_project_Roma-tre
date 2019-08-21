@@ -9,9 +9,7 @@ sleep 20
 echo Cancellazione topics se esistono
 docker exec kafka kafka-topics.sh --delete --zookeeper zookeeper:2181 --topic review
 docker exec kafka kafka-topics.sh --delete --zookeeper zookeeper:2181 --topic media_stelle
-docker exec  kafka  kafka-topics.sh  --list --zookeeper zookeeper:2181
-docker-compose up -d googlemaps google_consumer barchart
-start chrome http://localhost:8081/googlecluster.html
-start chrome http://localhost:8082/barchart.html
+docker-compose up -d html_pages javascript_consumer
+start chrome http://localhost:8081/apri_pagine.html
 sleep 20
 docker-compose up

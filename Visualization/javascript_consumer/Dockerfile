@@ -8,6 +8,6 @@ COPY . .
 
 EXPOSE 3001
 
-ADD ./google_consumer.js google_consumer.js
+ADD ./javascript_server_side.js javascript_server_side.js
 
-CMD ["node", "google_consumer.js"]
+CMD ["node", "javascript_server_side.js"]
