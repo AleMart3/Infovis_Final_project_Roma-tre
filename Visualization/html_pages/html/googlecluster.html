@@ -4,19 +4,10 @@
     <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
     <meta charset="utf-8">
     <title>Marker Clustering</title>
-    <style>
-        /* Always set the map height explicitly to define the size of the div
-         * element that contains the map. */
-        #map {
-            height: 100%;
-        }
-        /* Optional: Makes the sample page fill the window. */
-        html, body {
-            height: 100%;
-            margin: 0;
-            padding: 0;
-        }
-    </style>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+    <link rel="stylesheet" href="google.css">
 
 
     <script src="socket.io.js"></script>
@@ -25,13 +16,108 @@
 
 <body>
 <div id="map"></div>
+
+
+
+<div id="mySidebar" class="sidebar">
+
+</div>
+
+
 <script>
+
+    function openNav() {
+        document.getElementById("mySidebar").style.width = "400px";
+    }
+
+    function closeNav() {
+        document.getElementById("mySidebar").style.width = "0";
+    }
+
+
+    function elimina_nodi(){
+        const myNode = document.getElementById("mySidebar");
+        myNode.innerHTML = '';
+    }
+
+    function popola_sideBar(array,name) {
+
+        document.getElementById('mySidebar').innerHTML += '<a><h2>'+name+'</h2></a>'
+
+        array.forEach(function (recensione) {
+
+
+            let stelle = recensione.split("split_stelle")[1];
+            console.log(stelle)
+            stelle_html=""
+
+            if(stelle==1){
+                stelle_html=' <span class="fa fa-star checked">' +    '</span>'+
+                            ' <span class="fa fa-star ">' +    '</span>'+
+                            ' <span class="fa fa-star ">' +    '</span>'+
+                            ' <span class="fa fa-star ">' +    '</span>'+
+                            ' <span class="fa fa-star ">' +    '</span>'
+            }
+            else if(stelle==2){
+                stelle_html=' <span class="fa fa-star checked">' +    '</span>'+
+                    ' <span class="fa fa-star checked">' +    '</span>'+
+                    ' <span class="fa fa-star ">' +    '</span>'+
+                    ' <span class="fa fa-star ">' +    '</span>'+
+                    ' <span class="fa fa-star ">' +    '</span>'
+            }
+            else if(stelle==3){
+                stelle_html=' <span class="fa fa-star checked">' +    '</span>'+
+                    ' <span class="fa fa-star checked">' +    '</span>'+
+                    ' <span class="fa fa-star checked">' +    '</span>'+
+                    ' <span class="fa fa-star ">' +    '</span>'+
+                    ' <span class="fa fa-star ">' +    '</span>'
+            }
+            else if(stelle==4){
+                stelle_html=' <span class="fa fa-star checked">' +    '</span>'+
+                    ' <span class="fa fa-star checked">' +    '</span>'+
+                    ' <span class="fa fa-star checked">' +    '</span>'+
+                    ' <span class="fa fa-star checked">' +    '</span>'+
+                    ' <span class="fa fa-star ">' +    '</span>'
+            }
+            else if(stelle==5){
+                stelle_html=' <span class="fa fa-star checked">' +    '</span>'+
+                    ' <span class="fa fa-star checked">' +    '</span>'+
+                    ' <span class="fa fa-star checked">' +    '</span>'+
+                    ' <span class="fa fa-star checked">' +    '</span>'+
+                    ' <span class="fa fa-star checked">' +    '</span>'
+            }
+
+            console.log(stelle_html)
+            document.getElementById('mySidebar').innerHTML +=
+            '<a href="javascript:void(0)" class="closebtn" onclick="closeNav()">'+'×'+'</a>'+
+
+                '<a>' + recensione.split("split_testo")[1] +
+                    '<br> '+ stelle_html+
+
+                     '<br>' + "recensione scritta il " + recensione.split("split_data")[1].split(" ")[0] + '</br>'+
+                    '</br>'+
+                '</a>';
+
+        })
+
+    }
+
+/*
+    var r = confirm("Clicca su ok finche' compare");
+    if (r == true) {
+        window.open('/WebstormWorkspace/n_recensioni/index.html', 'barchart', '');
+    } else {
+
+    }*/
 
 
 
     var max_markers=15
 
-   
+    // window.open('/WebstormWorkspace/n_recensioni/index.html', 'barchart', '');
+    // window.open('/WebstormWorkspace/googlemaps/googlecluster2.html', 'googlemaps', '');
+
+
     console.log("avvio")
 
     var socket = io('http://localhost:3001');
@@ -50,8 +136,8 @@
     function myfunction(name){
         console.log("cliccato")
        socket.emit('update4',name)
-       window.open('javascript:void window.focus()', 'barchart','');
-        
+        // window.open('/WebstormWorkspace/n_recensioni/index.html', 'barchart', '');
+         window.open('javascript:void window.focus()', 'barchart', '');
 
     }
 
@@ -91,11 +177,21 @@
 
             var media_stelle = data.split(",")[4]
 
+            var lista_recensioni= data.split("||||||")[1].split("|||")
+
+            // console.log(name)
+            //
+            // console.log(lista_recensioni)
+
+
+
+
+
             //console.log(lat,lng,name,n_recensioni,media_stelle);
 
             loc={lat:parseFloat(lat),lng:parseFloat(lng)};
 
-            addMarker(loc,name,n_recensioni,media_stelle,markers,markerCluster);
+            addMarker(loc,name,n_recensioni,media_stelle,markers,markerCluster,lista_recensioni);
 
 
             socket.on('update3', (data) =>{
@@ -130,7 +226,7 @@
 
 
 
-        function addMarker(location,name,n_recensioni,media_stelle,markers,markerCluster) {
+        function addMarker(location,name,n_recensioni,media_stelle,markers,markerCluster,lista_recensioni) {
 
 
             //se non c'è, se il n di recensioni è maggiore ad almeno 1 elemento, allora aggiungi ed elimina il minimo
@@ -150,7 +246,7 @@
                     markerCluster.addMarker(marker)
 
 
-                    var content_window = document.createElement('div'), button;
+                    var content_window = document.createElement('div'), button,button2;
                     content_window.setAttribute("id","content")
 
 
@@ -169,8 +265,20 @@
                     button.type = 'button';
                     button.value = 'vai alla top 15'
 
+                    button2 = content_window.appendChild(document.createElement('input'));
+                    button2.type = 'button';
+                    button2.value = 'lista recensioni'
+
                     google.maps.event.addDomListener(button, 'click', function () {
                         myfunction(name);
+                    })
+
+                    google.maps.event.addDomListener(button2, 'click', function () {
+
+                        elimina_nodi()
+
+                        popola_sideBar(lista_recensioni,name);
+                        openNav();
                     })
 
 
@@ -254,8 +362,19 @@
                     button.type = 'button';
                     button.value = 'vai alla top 15'
 
+                    button2 = content_window.appendChild(document.createElement('input'));
+                    button2.type = 'button';
+                    button2.value = 'lista recensioni'
+
                     google.maps.event.addDomListener(button, 'click', function () {
                         myfunction(name);
+                    })
+
+                    google.maps.event.addDomListener(button2, 'click', function () {
+
+                        elimina_nodi()
+                        popola_sideBar(lista_recensioni,name);
+                        openNav()
                     })
 
 
@@ -267,19 +386,23 @@
             }
 
 
-            update(markers,markerCluster,location,name,n_recensioni,media_stelle)
+            update(markers,markerCluster,location,name,n_recensioni,media_stelle,lista_recensioni)
 
         }
 
         function addInfoWindow(marker, content_window) {
 
             var infoWindow = new google.maps.InfoWindow({
-                content: content_window
+                content: content_window,
+                maxWidth: 250
             });
 
             google.maps.event.addListener(marker, 'click', function () {
                 infoWindow.open(map, marker);
+
             });
+
+
         }
 
 
@@ -308,7 +431,7 @@
         }
 
 
-        function update(markers,markerCluster,location,name,n_recensioni,media_stelle){
+        function update(markers,markerCluster,location,name,n_recensioni,media_stelle,lista_recensioni){
 
             markers.forEach(function (data,i) {
 
@@ -349,8 +472,19 @@
                         button.type = 'button';
                         button.value = 'vai alla top 15'
 
+                        button2 = content_window.appendChild(document.createElement('input'));
+                        button2.type = 'button';
+                        button2.value = 'lista recensioni'
+
                         google.maps.event.addDomListener(button, 'click', function () {
                             myfunction(name);
+                        })
+
+                        google.maps.event.addDomListener(button2, 'click', function () {
+
+                            elimina_nodi()
+                            popola_sideBar(lista_recensioni,name);
+                            openNav();
                         })
 
 

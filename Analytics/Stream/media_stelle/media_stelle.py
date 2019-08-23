@@ -5,7 +5,9 @@ from pyspark.streaming.kafka import KafkaUtils
 import json
 from kafka import KafkaProducer
 
+
 os.environ['PYSPARK_SUBMIT_ARGS'] = "--packages org.apache.spark:spark-streaming-kafka-0-8_2.11:2.3.3 pyspark-shell"
+
 
 sc = SparkContext(appName="maxStars")
 ssc = StreamingContext(sc, 5)
@@ -23,7 +25,7 @@ kstream = KafkaUtils.createDirectStream(ssc, ['review'], {"metadata.broker.list"
 
 
 #Nella funzione di update devono essere fatte le stesse operazioni che vengono fatte nella reduce + l'operazione della media, la media
-#viene messa nell'ultimo campo
+#deve esser fatta nell'ultimo campo
 
 #last_values | new_value  -> [('nome', latitude, longitude, somma_stelle, somma_recensioni)]
 
@@ -33,16 +35,17 @@ def updateFunc(new_values, last_values):
     # print("new_values -> " + str(new_values))
     if last_values == None:
 
-        #0:nome, 1:latitudine, 2:longitudine, 3:stars, 4:recensioni, 5:media
+        #0:nome, 1:latitudine, 2:longitudine, 3:stars, 4:recensioni, 5:recensione, 6:media (extra)
 
-        return [(new_values[0][0], new_values[0][1], new_values[0][2], new_values[0][3], new_values[0][4], new_values[0][3]/new_values[0][4])]
+        return [(new_values[0][0], new_values[0][1], new_values[0][2], new_values[0][3], new_values[0][4], new_values[0][5], new_values[0][3]/new_values[0][4])]
 
     elif new_values == []:
 
-        return [(last_values[0][0], last_values[0][1], last_values[0][2], last_values[0][3], last_values[0][4], last_values[0][3]/last_values[0][4])]
+        return [(last_values[0][0], last_values[0][1], last_values[0][2], last_values[0][3], last_values[0][4], last_values[0][5], last_values[0][3]/last_values[0][4])]
 
     else:
         return [(new_values[0][0], new_values[0][1] , new_values[0][2], new_values[0][3]+last_values[0][3], new_values[0][4] + last_values[0][4],
+                 new_values[0][5] +["|||"]+ last_values[0][5],
                  (new_values[0][3]+last_values[0][3])/(new_values[0][4] + last_values[0][4]))]
 
 #OUTPUT STREAM:
@@ -57,9 +60,12 @@ business_review = kstream.map(lambda line: (json.loads(line[1])["business_id"], 
                                                                                 json.loads(line[1])["latitude"],
                                                                                 json.loads(line[1])["longitude"],
                                                                                 float(json.loads(line[1])["stars"]), 1,
+                                                ["split_testo"+json.loads(line[1])["text"]+"split_testo",
+                                                 "split_stelle"+json.loads(line[1])["stars"]+"split_stelle",
+                                                 "split_data"+json.loads(line[1])["date"]+"split_data"]
 
                                                                                 ))) \
-                    .reduceByKey(lambda x, y:(x[0], x[1], x[2], x[3]+y[3],x[4]+y[4])) \
+                    .reduceByKey(lambda x, y:(x[0], x[1], x[2], x[3]+y[3],x[4]+y[4],x[5]+["|||"]+y[5])) \
                     .updateStateByKey(updateFunc, initialRDD=initialStateRDD)\
                     .transform(lambda rdd: rdd.sortBy(lambda x: x[1][0][4], ascending=False))
 
@@ -75,9 +81,11 @@ def send_message(list_rdd):
             # rdd[1][0][2])    #lng
             # rdd[1][0][3])   #somma_stelle
             # rdd[1][0][4])   #somma_recensioni
-            # rdd[1][0][5])    #media_stelle
+            # rdd[1][0][5])    #lista recensioni
+            # rdd[1][0][6])    #media_stelle
 
-            message= rdd[1][0][1] + "," + rdd[1][0][2] + "," + rdd[1][0][0] +"," + str(rdd[1][0][4]) +"," + str(rdd[1][0][5])
+            lista_recensioni_to_string= str(rdd[1][0][5]).replace("', '","").replace("', '","").replace("['","").replace("']","")
+            message= rdd[1][0][1] + "," + rdd[1][0][2] + "," + rdd[1][0][0] +"," + str(rdd[1][0][4]) +"," + str(rdd[1][0][6]) + ",||||||" + lista_recensioni_to_string
             producer.send("media_stelle", str.encode(message))
             producer.flush()
 

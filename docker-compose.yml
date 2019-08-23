@@ -52,8 +52,6 @@ services:
     depends_on:
       - "kafka"
       - "zookeeper"
-    volumes:
-      - ./Analytics/Stream/media_stelle/spark-streaming-kafka-0-8_2.11-2.3.3.jar:/data/spark-streaming-kafka-0-8_2.11-2.3.3.jar
     container_name: 
       media_stelle
     #logging:
