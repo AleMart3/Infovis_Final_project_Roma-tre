@@ -4,7 +4,7 @@
 
 La demo è in formato gif, è possibile anche scaricarla in formato mp4 
 
-![](demo.gif)
+![](prova.gif)
 
 ## Ambiente di esecuzione 
 
