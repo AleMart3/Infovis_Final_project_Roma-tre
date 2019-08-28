@@ -2,8 +2,6 @@
 
 ## Demo
 
-Use the app online at https://farmersmarkets.kelli.app
-
 ![](demo.gif)
 
 ## Ambiente di esecuzione 
