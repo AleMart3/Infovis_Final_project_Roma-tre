@@ -1,7 +1,0 @@
-docket start progetto_con_docker_kafka_1
-
-docker exec  progetto_con_docker_kafka_1  kafka-topics.sh  --list --zookeeper zookeeper:2181
-
-docker exec progetto_con_docker_kafka_1 kafka-topics.sh --delete --zookeeper zookeeper:2181 --topic review
-
-docker exec progetto_con_docker_kafka_1 kafka-topics.sh --delete --zookeeper zookeeper:2181 --topic media_stelle

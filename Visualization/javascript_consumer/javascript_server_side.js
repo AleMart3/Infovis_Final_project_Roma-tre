@@ -53,17 +53,17 @@ function callSockets(io, message){
 
 
 
-
+//viene richiamata quando dal barchart si è cliccato su una barra, message rappresenta il nome dell'attività della barra
 io.on('connection', function (socket) {
     socket.on('update2', function (message) {
         console.log("è stato cliccato su -> " + message)
-        io.sockets.emit('update3',message)
+        io.sockets.emit('update3',message) //al canale update3 è in ascolto googlemaps
     });
 
-
+//viene richiamata quando da googlemaps si è cliccato su "vai alla top 15", message rappresenta il nome dell'attività del marker
     socket.on('update4', function (message) {
         console.log("è stato cliccato su -> " + message)
-        io.sockets.emit('update5',message)
+        io.sockets.emit('update5',message) //al canale update5 è in ascolto il barchart
     });
 
 

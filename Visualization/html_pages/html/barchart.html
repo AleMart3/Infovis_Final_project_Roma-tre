@@ -33,6 +33,7 @@
 
 <script>
 
+
 	  
     newData=[];
 
@@ -62,13 +63,15 @@
 
     socket.on('connect', ()=>{
         console.log("connected");
-    })
+    });
 
 
    var svg;
    var chartRow;
 
     socket.on('update', (data) =>{
+
+        //le funzioni da richiamare vengono scelte in fondo al codice
 
 
         function setup(targetID){
@@ -100,6 +103,7 @@
         //Import settings
         var svg=settings.svg, x=settings.x;
 
+        //indici che controllano l'asse y, servono solo fino a quando il barChart non raggiunge la dimensione massima (15)
         var indici = [{i: 5, j:117},
             {i:4, j:87},
             {i:4, j:130},
@@ -117,15 +121,17 @@
             {i:4, j:603},
             {i:4, j:646}
 
-
         ];
 
 
+        //si entra in questa if se non si è raggiunti la dimensione massima dell'array e se è stata aggiunta una nuova attività
         if(lunghezzaPrecedente!=newdata.length){
 
             //Set up scales
             y = d3.scale.ordinal()
-                .rangeRoundBands([indici[newdata.length-1]["i"], indici[newdata.length-1]["j"]], 0.1, 0);}
+                .rangeRoundBands([indici[newdata.length-1]["i"], indici[newdata.length-1]["j"]], 0.1, 0);
+        }
+
 
         //Reset domains
         y.domain(newdata.sort(function(a,b){
@@ -163,7 +169,7 @@
             .attr("opacity",0)
             .style('fill', function(d) {return d.color;})
             .attr("height", 30)  //altenzza barre
-            .attr("width", function(d) { return x(d.value);})
+            .attr("width", function(d) { return x(d.value);});
 
         //Add value labels
         newRow.append("text")
@@ -222,12 +228,7 @@
                 return d.key});
 
 
-        // //Fade in categories
-        // chartRow.select(".category").transition()
-        //     .duration(300)
-        //     .attr("opacity",1);
-
-
+       
         ////////
         //EXIT//
         ////////
@@ -251,14 +252,15 @@
             .attr("transform", function(d){return "translate(0," + y(d.key) + ")";});
 
 
-
+     //viene richiamata quando si clicca su una barra, d contiene tutte le informazioni sulla barra (nome, numero_recensioni...)
     chartRow.on("click", function(d){
 
             console.log("hocliccato");
             let nome= d.key.split(",")[0];
             console.log(nome);
 
-            socket.emit('update2',nome)
+            //invia il nome dell'attività della barra su cui si è cliccato, a questo canale è in ascolto il  javascript_server_side
+            socket.emit('update2',nome);
 
             window.open('javascript:void window.focus()', 'googlemaps', '');
 
@@ -275,32 +277,36 @@
 
             lunghezzaPrecedente=newData.length;
 
-            //key: nome,media stelle   value: n_recensioni
+            //key: nome,media stelle   value: n_recensioni, color:grigio
             var messaggio= {key:data.split(",")[2].toString() +", " + Number(data.split(",")[4]).toFixed(1).toString()
                     + " su 5 stelle", value:parseInt(data.split(",")[3]),
-            color:'#ECECEC'}
+            color:'#ECECEC'};
 
-            console.log("messaggio ->" + messaggio.key.toString() + "," + messaggio.value.toString())
+            console.log("messaggio ->" + messaggio.key.toString() + "," + messaggio.value.toString());
 
 
+            //se l'attività non c'è nel barChart
             if(isNotIn(newData,messaggio)){
-
                 newData.push(messaggio)
-
             }
 
-            update(newData,messaggio)
+            //altrimenti, già c'è, controlla se c'è stato un aggiornamento (incremento delle recensioni)
+            else{
+            update(newData,messaggio);
+            }
 
-            newData = formatData(newData)
+            newData = formatData(newData); //ordina array in modo decrescente in base al numero di recensioni delle attivtà
+                                            //e prende le top 15
 
 
+            //viene richiamato redrawChart
             callback(settings,newData,lunghezzaPrecedente)
 
     }
 
 
     function isNotIn(array,el) {
-        elementoTrovato= true
+        elementoTrovato= true;
 
         array.forEach(function (data) {
 
@@ -309,7 +315,7 @@
                 elementoTrovato = false
 
             }}
-        )
+        );
 
         return elementoTrovato
     }
@@ -319,14 +325,14 @@
 
         array.forEach(function (data,i) {
 
-            //se è stato già aggiunto
+            //serve per trovare l'indice dell'attività da controllare
             if ((el.key.split(",")[0].toString() == data.key.split(",")[0].toString())) {
 
-                if(el.value>data.value){
+                if(el.value>data.value){ //se il numero di recensioni è aumentato
 
-                    array.splice(i,1)
+                    //aggiorna attività
+                    array.splice(i,1);
                     array.push(el)
-
                 }
 
             }
@@ -340,17 +346,18 @@
         return data.sort(function (a, b) {
             return b.value - a.value;
         })
-            .slice(0, 15);
+            .slice(0, 15); //prende le top 15
     }
 
-    //I like to call it what it does
+    //redraw barChart
     function redraw(settings){
         pullData(settings,redrawChart)
     }
 
 
-    //setup (includes first draw)
+    //Da qui si decide cosa fare, ogni volta che arriva un messaggio dall'analisi streaming
 
+    //setup va richiamata una volta sola, se venisse chiamata ogni volta il barChart verrebbe cancellato totalmente e ridisegnato
     if(cont==0){
 
         settings = setup('#chart');
@@ -359,35 +366,39 @@
 
     redraw(settings)
 
+    //fino a qui
+    });
 
-    })
 
+    //viene richiamata quando è stato su "vai alla top 15" da googlemaps
     socket.on('update5', (data) =>{
+
+        //data è il nome dell'attività su cui è stato cliccato
 
         console.log("cliccato su ->" + data);
 
         let indice;
 
+        //recupero l'indice dell'attività
         newData.forEach(function(d,i){
             if(data==d.key.split(",")[0]){
                 indice=i
 
             }
-        })
-
-        //console.log(indice)
+        });
 
 
-        newData[indice].color='yellow'
+        //cambio il colore nell'array
+        newData[indice].color='yellow';
 
-        //console.log(newData[0].color)
-
-        chartRow[0][indice].color='yellow'
-
-
-        redrawChart(settings,newData,newData.length)
+        //cambio il colore nell'svg
+        chartRow[0][indice].color='yellow';
 
 
+        //effettuo i cambiamenti visivamente
+        redrawChart(settings,newData,newData.length);
+
+        //aspetto 4 secondi e ricoloro la barra evidenziata di color grigio
         function sleep(ms) {
             return new Promise(resolve => setTimeout(resolve, ms));
         }
@@ -401,11 +412,11 @@
                     indice=i
 
                 }
-            })
+            });
 
-            newData[indice].color='#ECECEC'
+            newData[indice].color='#ECECEC';
 
-            chartRow[0][indice].color='#ECECEC'
+            chartRow[0][indice].color='#ECECEC';
 
             redrawChart(settings,newData,newData.length)
 

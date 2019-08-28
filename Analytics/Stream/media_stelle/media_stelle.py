@@ -20,9 +20,6 @@ initialStateRDD = sc.parallelize([])
 
 kstream = KafkaUtils.createDirectStream(ssc, ['review'], {"metadata.broker.list": 'kafka:9092'})
 
-#producer.send('review', str.encode(line))
-    #producer.flush()
-
 
 #Nella funzione di update devono essere fatte le stesse operazioni che vengono fatte nella reduce + l'operazione della media, la media
 #deve esser fatta nell'ultimo campo

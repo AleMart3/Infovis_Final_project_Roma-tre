@@ -14,6 +14,6 @@ for line in f:
     print(cont)
     producer.send('review', str.encode(line))
     producer.flush()
-    time.sleep(0.3)
+    time.sleep(0.5)
     #time.sleep(1)
 
