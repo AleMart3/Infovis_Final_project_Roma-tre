@@ -2,7 +2,7 @@
 
 ## Demo
 
-La demo è in formato gif, è possibile anche scaricare la demo in formato mp4 
+La demo è in formato gif, è possibile anche scaricarla in formato mp4 
 
 ![](demo.gif)
 
