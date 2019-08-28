@@ -1,5 +1,11 @@
 # Progetto finale per il corso di Information Visualization
 
+## Demo
+
+Use the app online at https://farmersmarkets.kelli.app
+
+![](demo.gif)
+
 ## Ambiente di esecuzione 
 
 Questa applicazione può eseguita in un ambiente in cui vi siano installati:
