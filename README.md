@@ -8,6 +8,8 @@ Questa applicazione può eseguita in un ambiente in cui vi siano installati:
 
 * Docker compose 
 
+* Git (Windows) 
+
 ## Abilitare popup e reindirizzamenti
 
 Per il corretto funzionamento dell'applicazione è necessario abilitare i popup e reindirizzamenti dal proprio browser.
