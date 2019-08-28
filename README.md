@@ -10,7 +10,7 @@ Questa applicazione può eseguita in un ambiente in cui vi siano installati:
 
 ## Docker Settings
 
-Settings minimi: 2 CPUs, 4 GB RAM
+Settings minimi: 2 CPUs, 4 GB RAM <br/>
 Settings consigliati: 4 CPUs, 8 GB RAM
 
 ## Abilitare popup e reindirizzamenti
