@@ -15,7 +15,7 @@ Chrome: impostazioni -> Avanzate -> Privacy e sicurezza -> Impostazioni sito -> 
 
 ## Esecuzione 
 
-Lo script di avvio è settato per aprire la pagina html da google-chrome con un comando windows.
+Lo script di avvio è impostato per aprire la pagina html da google-chrome con un comando windows.
 Per eseguire l'applicazione, eseguire lo script `run-application.sh.`
 
 
