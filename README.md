@@ -15,7 +15,7 @@ Settings consigliati: 4 CPUs, 8 GB RAM
 
 ## Abilitare popup e reindirizzamenti
 
-Per il corretto funzionamento dell'applicazione è necessario abilitare i popup e reindirizzamenti dal proprio browser.
+Per il corretto funzionamento dell'applicazione è necessario abilitare i popup e reindirizzamenti dal proprio browser.<br/>
 Chrome: impostazioni -> Avanzate -> Privacy e sicurezza -> Impostazioni sito -> Popup e reindirizzamenti -> spuntare su Consentito
 
 ## Esecuzione 
