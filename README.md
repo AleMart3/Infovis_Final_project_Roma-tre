@@ -2,10 +2,8 @@
 
 ## Demo
 
-<video src="demo.mp4" width="320" height="200" controls preload></video>
-
 La demo è in formato gif
-![](demo.gif)
+![](demo.mp4)
 
 ## Ambiente di esecuzione 
 
