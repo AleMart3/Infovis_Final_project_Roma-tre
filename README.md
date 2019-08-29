@@ -31,7 +31,7 @@ Lo script di avvio è impostato per aprire la pagina html da google-chrome con u
 Per eseguire l'applicazione, aprire un terminale, spostarsi nella cartella del progetto ed eseguire lo script <br/>
 `run-application.sh.`<br/>
 Tempo richiesto per la costruzione delle immagini Docker (solo primo avvio): circa 5 minuti <br/>
-Tempo richiesto l'avvio dell'applicazione (con immagini già costruite): circa 2 minuti
+Tempo richiesto per l'avvio dell'applicazione (con immagini già costruite): circa 2 minuti
 
 ## Arresto 
 
