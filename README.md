@@ -18,6 +18,7 @@ Questa applicazione può eseguita in un ambiente in cui vi siano installati:
 
 Settings minimi: 2 CPUs, 4 GB RAM <br/>
 Settings consigliati: 4 CPUs, 8 GB RAM
+Spazio richiesto: 5-6 GB
 
 ## Abilitare popup e reindirizzamenti
 
